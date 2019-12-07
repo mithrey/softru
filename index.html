@@ -1,0 +1,81 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('form').submit(function(event){
+                event.preventDefault();
+                $source = $(this).attr('id')
+                $.ajax({
+                    type: "POST",
+                    data: $(this).serialize()+"&f="+$source,
+
+                    success: function(data) {
+                        console.log(data);
+                        data = JSON.parse(data);
+                        $('#player').text(data.player_id);
+                        $('#balance').text(data.balance);
+                        $('.hidden').show();
+                        if($source == 'createPlayer'){
+                            $.each(data.games, function() {
+                                $("#dropdown").append($("<option />").val(this.id).text(this.name));
+                            });
+                        }
+                        if($source == 'gameList'){
+                            $('#link').attr("src",data.game.link);
+                            $('#link').show();
+                        }
+                    }
+                });
+            });
+
+            
+            function updateBalance(){
+                if($('#player').text() != ''){
+                    $.ajax({
+                        type: "POST",
+                        data: "&f=updateBalance",
+
+                        success: function(data) {
+                            console.log(data);
+                            data = JSON.parse(data);
+                            $('#player').text(data.player_id);
+                            $('#balance').text(data.balance);
+                        }
+                    });
+                }
+            }
+            setInterval(updateBalance,1000);  
+            
+        });
+    </script>
+    </head>
+ <body>
+    Current player: <span id="player"></span></br>
+    Balance: <span id="balance">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <form method="POST" id="createPlayer">
+        <b>Create player</b>
+        <p><label for="player_id">Player ID: </label><input type="text" id="player_id" name="player_id"></br>
+        <p><input type="submit" name="createPlayer" value="Create"></p>
+        <div id="result"></div>
+    </form>
+    </hr>
+
+    <form action="index.php" id="changeBalance" class="hidden" style="display:none" method="POST">
+        <b>Change balance</b>
+            <p><label for="amount">Amount: </label><input type="text" id="amount" name="amount"></br>
+        <p><input type="submit" name="changeBalance" value="Change"></p>
+        </hr>
+    </form>
+
+    <form action="index.php" id="gameList" class="hidden" style="display:none" method="POST">
+            <b>Games to play</b>
+                <p><select id="dropdown" name="dropdown"></select></br>
+            <p><input type="submit" name="gameList" value="Play"></p>
+        </hr>
+    </form>
+    <iframe src="" id="link" width="1000px" height="600px" style="display:none"></iframe>
+    </hr>
+ </body>
+</html>
